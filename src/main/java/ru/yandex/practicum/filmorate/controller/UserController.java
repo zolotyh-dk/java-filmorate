@@ -10,17 +10,17 @@ import java.util.Collection;
 @RequestMapping("/users")
 public class UserController {
     @PostMapping
-    public User create(@RequestBody User user) {
+    public User createUser(@RequestBody User user) {
         return null;
     }
 
     @PutMapping
-    public User update(@RequestBody User user) {
+    public User updateUser(@RequestBody User user) {
         return null;
     }
 
     @GetMapping
-    public Collection<User> getAll() {
+    public Collection<User> getAllUsers() {
         return new ArrayList<>();
     }
 }
