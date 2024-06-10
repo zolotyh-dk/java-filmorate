@@ -12,7 +12,7 @@ import java.util.Map;
 @RequestMapping("/films")
 public class FilmController {
     private int generatorId = 0;
-    private Map<Integer, Film> films = new HashMap<>();
+    private final Map<Integer, Film> films = new HashMap<>();
 
     @PostMapping
     public Film createFilm(@Valid @RequestBody Film film) {
