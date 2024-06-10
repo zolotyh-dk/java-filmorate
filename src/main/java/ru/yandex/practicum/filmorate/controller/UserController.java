@@ -11,11 +11,17 @@ import java.util.Collection;
 public class UserController {
     @PostMapping
     public User createUser(@RequestBody User user) {
+        if (user.getName() == null || user.getName().isEmpty()) {
+            user.setName(user.getLogin());
+        }
         return null;
     }
 
     @PutMapping
     public User updateUser(@RequestBody User user) {
+        if (user.getName() == null || user.getName().isEmpty()) {
+            user.setName(user.getLogin());
+        }
         return null;
     }
 
