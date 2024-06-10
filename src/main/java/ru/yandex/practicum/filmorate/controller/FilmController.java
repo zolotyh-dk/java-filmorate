@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -10,15 +11,17 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/films")
+@Slf4j
 public class FilmController {
     private int generatorId = 0;
     private final Map<Integer, Film> films = new HashMap<>();
 
     @PostMapping
-    public Film createFilm(@Valid @RequestBody Film film) {
+    public Film saveFilm(@Valid @RequestBody Film film) {
         final int id = ++generatorId;
         film.setId(id);
         films.put(id, film);
+        log.debug("Сохранен фильм {}", film);
         return film;
     }
 
@@ -30,6 +33,7 @@ public class FilmController {
             return null;
         }
         films.put(id, film);
+        log.debug("Обновлен фильм {}", film);
         return film;
     }
 
