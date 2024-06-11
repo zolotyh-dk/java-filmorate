@@ -18,33 +18,39 @@ public class UserController {
 
     @PostMapping
     public User saveUser(@Valid @RequestBody User user) {
+        log.debug("Метод saveUser. В теле запроса пользователь: {}", user);
         final int id = ++generatorId;
         user.setId(id);
         if (user.getName() == null || user.getName().isEmpty()) {
             user.setName(user.getLogin());
         }
         users.put(id, user);
-        log.debug("Сохранен пользователь {}", user);
+        log.debug("Сохранен пользователь: {}", user);
+        log.debug("Хранилище пользователей теперь в состоянии: {}", users);
         return user;
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
+        log.debug("Метод updateUser. В теле запроса пользователь: {}", user);
         final int id = user.getId();
         final User savedUser = users.get(id);
         if (savedUser == null) {
+            log.debug("Пользователь с id={} не найден", id);
             return null;
         }
         if (user.getName() == null || user.getName().isEmpty()) {
             user.setName(user.getLogin());
         }
         users.put(id, user);
-        log.debug("Обновлен пользователь {}", user);
+        log.debug("Обновлен пользователь: {}", user);
+        log.debug("Хранилище пользователей теперь в состоянии: {}", users);
         return user;
     }
 
     @GetMapping
     public Collection<User> getAllUsers() {
+        log.debug("Метод getAllUsers");
         return users.values();
     }
 }

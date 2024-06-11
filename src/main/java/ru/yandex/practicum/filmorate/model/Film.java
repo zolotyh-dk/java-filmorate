@@ -1,11 +1,13 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import ru.yandex.practicum.filmorate.validator.ValidReleaseDate;
 
-import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  * Film.
@@ -22,9 +24,8 @@ public class Film {
 
     @NotNull(message = "Дата релиза не может быть null")
     @ValidReleaseDate
-    private Instant releaseDate;
+    private LocalDate releaseDate;
 
-    @NotNull(message = "Продолжительность не может быть null")
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
-    private Duration duration;
+    private int duration;
 }
