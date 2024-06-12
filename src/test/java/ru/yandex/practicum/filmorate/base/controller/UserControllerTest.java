@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.base.model.User;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -89,13 +90,6 @@ public class UserControllerTest {
 
     @Test
     public void testUpdateNonExistingUser() {
-        User user = new User();
-        user.setName("Пользователь");
-        user.setLogin("user");
-        user.setEmail("test@example.com");
-        user.setBirthday(LocalDate.of(1990, 6, 1));
-        userController.saveUser(user);
-
         User updatedUser = new User();
         updatedUser.setId(999);
         updatedUser.setName("Обновленный Пользователь");
@@ -103,7 +97,7 @@ public class UserControllerTest {
         updatedUser.setEmail("updatedtest@example.com");
         updatedUser.setBirthday(LocalDate.of(1995, 7, 1));
 
-        assertNull(userController.updateUser(updatedUser));
+        assertThrows(NoSuchElementException.class, () -> userController.updateUser(updatedUser));
     }
 
     @Test

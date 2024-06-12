@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.base.model.Film;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -108,9 +109,8 @@ public class FilmControllerTest {
         film.setDescription("Описание");
         film.setReleaseDate(LocalDate.of(2024, 6, 1));
         film.setDuration(120);
-        Film updatedFilm = filmController.updateFilm(film);
 
-        assertNull(updatedFilm);
+        assertThrows(NoSuchElementException.class, () -> filmController.updateFilm(film));
     }
 
     @Test

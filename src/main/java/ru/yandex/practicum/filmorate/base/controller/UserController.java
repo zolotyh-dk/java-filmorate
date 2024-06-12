@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/users")
@@ -53,8 +54,7 @@ public class UserController {
         final int id = user.getId();
         final User savedUser = users.get(id);
         if (savedUser == null) {
-            log.debug("Пользователь с id={} не найден", id);
-            return null;
+            throw new NoSuchElementException("Пользователь с id=" + id + " не найден.");
         }
         if (user.getName() == null || user.getName().isEmpty()) {
             user.setName(user.getLogin());

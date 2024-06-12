@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/films")
@@ -50,8 +51,7 @@ public class FilmController {
         final int id = film.getId();
         final Film savedFilm = films.get(id);
         if (savedFilm == null) {
-            log.debug("Фильм с id={} не найден", id);
-            return null;
+            throw new NoSuchElementException("Фильм с id=" + id + " не найден.");
         }
         films.put(id, film);
         log.debug("Обновлен фильм: {}", film);
