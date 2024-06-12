@@ -1,9 +1,11 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.validated_by_annotation.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.validated_by_annotation.model.Film;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -44,7 +46,13 @@ public class FilmController {
 
     @GetMapping
     public Collection<Film> getAllFilms() {
-        log.debug("Метод getAllUsers");
+        log.debug("Метод getAllFilms");
         return films.values();
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public void handleValidationExceptions(MethodArgumentNotValidException exception) {
+        log.error("Ошибка валидации фильма: {}", exception.getMessage());
     }
 }

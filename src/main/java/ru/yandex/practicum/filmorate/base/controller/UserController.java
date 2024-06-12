@@ -1,10 +1,11 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.base.controller;
 
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.base.exception.ValidationException;
+import ru.yandex.practicum.filmorate.base.model.User;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,8 +18,16 @@ public class UserController {
     private final Map<Integer, User> users = new HashMap<>();
 
     @PostMapping
-    public User saveUser(@Valid @RequestBody User user) {
+    public User saveUser(@RequestBody User user) throws ValidationException {
         log.debug("Метод saveUser. В теле запроса пользователь: {}", user);
+
+        try {
+            validateUser(user);
+        } catch (ValidationException e) {
+            log.error("Ошибка валидации пользователя: {}", e.getMessage());
+            throw e;
+        }
+
         final int id = ++generatorId;
         user.setId(id);
         if (user.getName() == null || user.getName().isEmpty()) {
@@ -31,8 +40,16 @@ public class UserController {
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User user) {
+    public User updateUser(@RequestBody User user) throws ValidationException {
         log.debug("Метод updateUser. В теле запроса пользователь: {}", user);
+
+        try {
+            validateUser(user);
+        } catch (ValidationException e) {
+            log.error("Ошибка валидации пользователя: {}", e.getMessage());
+            throw e;
+        }
+
         final int id = user.getId();
         final User savedUser = users.get(id);
         if (savedUser == null) {
@@ -52,5 +69,17 @@ public class UserController {
     public Collection<User> getAllUsers() {
         log.debug("Метод getAllUsers");
         return users.values();
+    }
+
+    private void validateUser(User user) {
+        if (user.getEmail().isBlank() || !user.getEmail().contains("@")) {
+            throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @");
+        }
+        if (user.getEmail().isBlank() || user.getLogin().contains(" ")) {
+            throw new ValidationException("Логин не может быть пустым и содержать пробелы");
+        }
+        if (user.getBirthday().isAfter(LocalDate.now())) {
+            throw new ValidationException("Дата рождения не может быть в будущем");
+        }
     }
 }
