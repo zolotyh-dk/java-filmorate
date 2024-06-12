@@ -1,11 +1,11 @@
-package ru.yandex.practicum.filmorate.validated_by_annotation.controller;
+package ru.yandex.practicum.filmorate.annotated.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.validated_by_annotation.model.User;
+import ru.yandex.practicum.filmorate.annotated.model.User;
 
 import java.util.Collection;
 import java.util.HashMap;

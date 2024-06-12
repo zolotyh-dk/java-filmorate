@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.validated_by_annotation.model;
+package ru.yandex.practicum.filmorate.annotated.model;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
