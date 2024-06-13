@@ -1,16 +1,14 @@
-package ru.yandex.practicum.filmorate.annotated.controller;
+package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.annotated.model.Film;
+import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/films")
@@ -25,8 +23,7 @@ public class FilmController {
         final int id = ++generatorId;
         film.setId(id);
         films.put(id, film);
-        log.debug("Сохранен фильм: {}", film);
-        log.debug("Хранилище фильмов теперь в состоянии: {}", films);
+        log.debug("Сохранен фильм: {}\nХранилище фильмов теперь в состоянии: {}", film, films);
         return film;
     }
 
@@ -36,23 +33,18 @@ public class FilmController {
         final int id = film.getId();
         final Film savedFilm = films.get(id);
         if (savedFilm == null) {
-            throw new NoSuchElementException("Фильм с id=" + id + " не найден.");
+            throw new FilmNotFoundException("Фильм с id=" + id + " не найден.");
         }
         films.put(id, film);
-        log.debug("Обновлен фильм: {}", film);
-        log.debug("Хранилище фильмов теперь в состоянии: {}", films);
+        log.debug("Обновлен фильм: {}\nХранилище фильмов теперь в состоянии: {}", film, films);
         return film;
     }
 
     @GetMapping
     public Collection<Film> getAllFilms() {
         log.debug("Метод getAllFilms");
-        return films.values();
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public void handleValidationExceptions(MethodArgumentNotValidException exception) {
-        log.error("Ошибка валидации фильма: {}", exception.getMessage());
+        Collection<Film> allFilms = films.values();
+        log.debug("Возвращаем коллекцию фильмов: {}", allFilms);
+        return allFilms;
     }
 }
