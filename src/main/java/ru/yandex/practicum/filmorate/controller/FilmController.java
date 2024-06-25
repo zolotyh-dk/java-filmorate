@@ -17,19 +17,19 @@ public class FilmController {
 
     @PostMapping
     public Film saveFilm(@Valid @RequestBody Film film) {
-        log.debug("Метод saveFilm. В теле запроса фильм: {}", film);
+        log.debug("Метод FilmController.saveFilm. В теле запроса фильм: {}", film);
         return filmStorage.saveFilm(film);
     }
 
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
-        log.debug("Метод updateFilm. В теле запроса фильм: {}", film);
+        log.debug("Метод FilmController.updateFilm. В теле запроса фильм: {}", film);
         return filmStorage.updateFilm(film);
     }
 
     @GetMapping
     public Collection<Film> getAllFilms() {
-        log.debug("Метод getAllFilms");
+        log.debug("Метод FilmController.getAllFilms");
         return filmStorage.getAllFilms();
     }
 }
