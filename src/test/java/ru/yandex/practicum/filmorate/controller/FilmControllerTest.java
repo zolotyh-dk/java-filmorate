@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -21,10 +22,12 @@ import java.time.LocalDate;
 class FilmControllerTest {
     private MockMvc mockMvc;
     private ObjectMapper mapper;
+    @Autowired
+    private FilmController filmController;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new FilmController())
+        mockMvc = MockMvcBuilders.standaloneSetup(filmController)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
         mapper = new ObjectMapper();

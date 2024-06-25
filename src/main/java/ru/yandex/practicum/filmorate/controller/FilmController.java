@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -12,8 +13,9 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/films")
 @Slf4j
+@RequiredArgsConstructor
 public class FilmController {
-    FilmStorage filmStorage = new InMemoryFilmStorage();
+    private final FilmStorage filmStorage;
 
     @PostMapping
     public Film saveFilm(@Valid @RequestBody Film film) {
