@@ -8,10 +8,11 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
 public class User {
-    private int id;
+    private long id;
 
     @Email(message = "Email должен быть корректным")
     private String email;
@@ -25,4 +26,6 @@ public class User {
     @JsonFormat(pattern = "yyyy-MM-dd") // без этого LocalDate сериализуется некорректно
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
+
+    private Set<Long> friendsIds;
 }

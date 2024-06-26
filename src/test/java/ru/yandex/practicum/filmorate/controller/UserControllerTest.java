@@ -136,7 +136,7 @@ public class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        int createdUserId = mapper.readValue(response, User.class).getId();
+        long createdUserId = mapper.readValue(response, User.class).getId();
 
         User userToUpdate = new User();
         userToUpdate.setId(createdUserId);
