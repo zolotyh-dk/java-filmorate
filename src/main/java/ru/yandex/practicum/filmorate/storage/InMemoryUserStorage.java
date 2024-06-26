@@ -48,4 +48,9 @@ public class InMemoryUserStorage implements UserStorage {
         log.debug("Возвращаем коллекцию пользователей: {}", allUsers);
         return allUsers;
     }
+
+    @Override
+    public User getUserById(long id) {
+        return users.get(id);
+    }
 }
