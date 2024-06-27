@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,7 +47,7 @@ public class UserService {
         friend.getFriendsIds().remove(userId);
     }
 
-    public Set<Long> getCommonFriends(long userId, long otherId) {
+    public List<User> getCommonFriends(long userId, long otherId) {
         User user = userStorage.getUserById(userId);
         Set<Long> userFriendsIds = user.getFriendsIds();
 
@@ -55,6 +56,15 @@ public class UserService {
 
         return userFriendsIds.stream()
                 .filter(otherFriendsIds::contains)
-                .collect(Collectors.toSet());
+                .map(userStorage::getUserById)
+                .collect(Collectors.toList());
+    }
+
+    public User getUserById(long id) {
+        return userStorage.getUserById(id);
+    }
+
+    public List<User> getFriends(long id) {
+        return userStorage.getFriends(id);
     }
 }
