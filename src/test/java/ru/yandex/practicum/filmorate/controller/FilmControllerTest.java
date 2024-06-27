@@ -122,7 +122,7 @@ class FilmControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        int createdFilmId = mapper.readValue(response, Film.class).getId();
+        long createdFilmId = mapper.readValue(response, Film.class).getId();
 
         Film filmToUpdate = new Film();
         filmToUpdate.setId(createdFilmId);
@@ -146,7 +146,7 @@ class FilmControllerTest {
     @Test
     void updateFilmNotFound() throws Exception {
         Film filmToUpdate = new Film();
-        filmToUpdate.setId(999);
+        filmToUpdate.setId(999L);
         filmToUpdate.setName("Новое название");
         filmToUpdate.setDescription("Новое описание");
         filmToUpdate.setReleaseDate(LocalDate.of(2023, 6, 1));

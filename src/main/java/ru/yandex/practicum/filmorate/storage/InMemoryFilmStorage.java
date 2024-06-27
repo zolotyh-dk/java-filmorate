@@ -12,12 +12,12 @@ import java.util.Map;
 @Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
-    private int generatorId = 0;
-    private final Map<Integer, Film> films = new HashMap<>();
+    private long generatorId = 0;
+    private final Map<Long, Film> films = new HashMap<>();
 
     @Override
     public Film saveFilm(Film film) {
-        final int id = ++generatorId;
+        final long id = ++generatorId;
         film.setId(id);
         films.put(id, film);
         log.debug("Сохранен фильм: {}\nХранилище фильмов теперь в состоянии: {}", film, films);
@@ -26,7 +26,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
-        final int id = film.getId();
+        final long id = film.getId();
         final Film savedFilm = films.get(id);
         if (savedFilm == null) {
             throw new FilmNotFoundException("Фильм с id=" + id + " не найден.");
@@ -41,5 +41,10 @@ public class InMemoryFilmStorage implements FilmStorage {
         Collection<Film> allFilms = films.values();
         log.debug("Возвращаем коллекцию фильмов: {}", allFilms);
         return allFilms;
+    }
+
+    @Override
+    public Film getFilmById(long id) {
+        return films.get(id);
     }
 }
