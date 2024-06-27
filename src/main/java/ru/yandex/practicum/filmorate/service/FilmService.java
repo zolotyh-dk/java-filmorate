@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,8 +23,9 @@ public class FilmService {
     }
 
     public List<Film> getMostPopularFilms(int count) {
-//        return filmStorage.getAllFilms().stream()
-//                .sorted((film, other) -> film.getUsersLikeIds() - film.getUsersLikeIds())
-        return null;
+        return filmStorage.getAllFilms().stream()
+                .sorted(Comparator.comparingInt(film -> film.getUsersLikeIds().size()))
+                .limit(count)
+                .collect(Collectors.toList());
     }
 }
