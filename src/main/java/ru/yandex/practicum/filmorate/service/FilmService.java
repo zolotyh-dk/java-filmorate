@@ -39,7 +39,7 @@ public class FilmService {
         filmStorage.getFilmById(filmId).getUsersLikeIds().remove(userId);
     }
 
-    public List<Film> getMostPopularFilms(int count) {
+    public List<Film> getPopularFilms(int count) {
         return filmStorage.getAllFilms().stream()
                 .sorted(Comparator.comparingInt(film -> film.getUsersLikeIds().size()))
                 .limit(count)
