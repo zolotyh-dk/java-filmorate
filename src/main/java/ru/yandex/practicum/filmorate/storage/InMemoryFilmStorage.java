@@ -31,6 +31,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (savedFilm == null) {
             throw new FilmNotFoundException("Фильм с id=" + id + " не найден.");
         }
+        film.setUsersLikeIds(savedFilm.getUsersLikeIds());
         films.put(id, film);
         log.debug("Обновлен фильм: {}\nХранилище фильмов теперь в состоянии: {}", film, films);
         return film;

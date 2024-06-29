@@ -23,13 +23,13 @@ public class FilmController {
 
     @PostMapping
     public Film saveFilm(@Valid @RequestBody Film film) {
-        log.debug("Метод FilmController.saveFilm. В теле запроса фильм: {}", film);
+        log.debug("Метод FilmController.saveFilm. В теле запроса film={}", film);
         return filmService.saveFilm(film);
     }
 
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
-        log.debug("Метод FilmController.updateFilm. В теле запроса фильм: {}", film);
+        log.debug("Метод FilmController.updateFilm. В теле запроса film={}", film);
         return filmService.updateFilm(film);
     }
 
@@ -39,18 +39,27 @@ public class FilmController {
         return filmService.getAllFilms();
     }
 
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable long id) {
+        log.debug("Метод FilmController.getFilmById. В пути запроса id={}", id);
+        return filmService.getFilmById(id);
+    }
+
     @PutMapping("{id}/like/{userId}")
     public void addLike(@PathVariable("id") long filmId, @PathVariable long userId) {
+        log.debug("Метод FilmController.addLike. В пути запроса filmId={}, userId={}", filmId, userId);
         filmService.addLike(filmId, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void removeLike(@PathVariable("id") long filmId, @PathVariable long userId) {
+        log.debug("Метод FilmController.removeLike. В пути запроса filmId={}, userId={}", filmId, userId);
         filmService.removeLike(filmId, userId);
     }
 
     @GetMapping("/popular")
     public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
+        log.debug("Метод FilmController.getPopularFilms. В параметрах запроса count={}", count);
         return filmService.getPopularFilms(count);
     }
 }

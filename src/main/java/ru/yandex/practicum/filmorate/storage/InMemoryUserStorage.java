@@ -36,6 +36,7 @@ public class InMemoryUserStorage implements UserStorage {
         if (user.getName() == null || user.getName().isEmpty()) {
             user.setName(user.getLogin());
         }
+        user.setFriendsIds(savedUser.getFriendsIds());
         users.put(id, user);
         log.debug("Обновлен пользователь: {}\nХранилище пользователей теперь в состоянии: {}", user, users);
         return user;
