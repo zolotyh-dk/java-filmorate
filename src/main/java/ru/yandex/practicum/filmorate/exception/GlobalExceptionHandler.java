@@ -33,6 +33,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException exception) {
+        log.error("Пользователь не найден: {}", exception.getMessage());
         ErrorDetails errorDetails = new ErrorDetails(exception.getMessage());
         return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
     }

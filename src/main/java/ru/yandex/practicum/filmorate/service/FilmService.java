@@ -34,6 +34,7 @@ public class FilmService {
     }
 
     public Film getFilmById(long id) {
+        log.debug("Метод FilmService.getFilmById. В параметрах метода id={}", id);
         return filmStorage.getFilmById(id);
     }
 
