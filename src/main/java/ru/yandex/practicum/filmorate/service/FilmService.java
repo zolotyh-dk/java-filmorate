@@ -46,13 +46,13 @@ public class FilmService {
 
     public void addLike(long filmId, long userId) {
         log.debug("Метод FilmService.addLike. Добавляем лайк от пользователя с id={} фильму с id={}", userId, filmId);
-        userStorage.getUserById(userId);
+        userStorage.getUserById(userId); //проверка существования пользователя в хранилище
         filmStorage.getFilmById(filmId).getUsersLikeIds().add(userId);
     }
 
     public void removeLike(long filmId, long userId) {
         log.debug("Метод FilmService.removeLike. Убираем лайк от пользователя с id={} у фильма с id={}", userId, filmId);
-        userStorage.getUserById(userId);
+        userStorage.getUserById(userId); //проверка существования пользователя в хранилище
         filmStorage.getFilmById(filmId).getUsersLikeIds().remove(userId);
     }
 
