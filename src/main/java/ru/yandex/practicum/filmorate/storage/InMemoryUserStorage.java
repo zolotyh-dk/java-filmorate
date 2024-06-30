@@ -48,17 +48,22 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User getUserById(long id) {
-        final User user = users.get(id);
+        User user = users.get(id);
         if (user == null) {
+            log.error("Пользователь с id={} не найден", id);
             throw new UserNotFoundException("Пользователь с id=" + id + " не найден.");
         }
+        log.debug("Метод InMemoryUserStorage.getUserById. Возвращаем user={}", user);
         return user;
     }
 
     @Override
     public List<User> getFriends(long id) {
-        return getUserById(id).getFriendsIds().stream()
-                .map(users::get)
+        User user = getUserById(id);
+        List<User> friends = user.getFriendsIds().stream()
+                .map(this::getUserById)
                 .collect(Collectors.toList());
+        log.debug("Метод InMemoryUserStorage.getFriends. Возвращаем список друзей пользователя с id={}: {}", id, friends);
+        return friends;
     }
 }

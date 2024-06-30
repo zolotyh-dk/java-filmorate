@@ -24,18 +24,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(FilmNotFoundException.class)
-    public ResponseEntity<Object> handleFilmNotFoundException(FilmNotFoundException exception) {
-        log.error("Фильм не найден: {}", exception.getMessage());
+    @ExceptionHandler({FilmNotFoundException.class, UserNotFoundException.class})
+    public ResponseEntity<Object> handleNotFoundExceptions(RuntimeException exception) {
+        log.error("Ресурс не найден: {}", exception.getMessage());
         ErrorDetails errorDetails = new ErrorDetails(exception.getMessage());
         return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException exception) {
-        log.error("Пользователь не найден: {}", exception.getMessage());
-        ErrorDetails errorDetails = new ErrorDetails(exception.getMessage());
-        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleGeneralException(Exception exception) {
+        log.error("Внутренняя ошибка сервера: {}", exception.getMessage(), exception);
+        ErrorDetails errorDetails = new ErrorDetails("Произошла внутренняя ошибка сервера.");
+        return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     static class ErrorDetails {
