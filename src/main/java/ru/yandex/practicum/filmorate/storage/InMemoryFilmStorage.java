@@ -19,8 +19,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film saveFilm(Film film) {
         final long id = ++generatorId;
         film.setId(id);
+        log.info("Фильму присвоен ID: {}", id);
         films.put(id, film);
-        log.debug("Сохранен фильм: {}\nХранилище фильмов теперь в состоянии: {}", film, films);
+        log.info("Фильм сохранен в хранилище: {}", films);
         return film;
     }
 
@@ -30,24 +31,21 @@ public class InMemoryFilmStorage implements FilmStorage {
         final Film savedFilm = getFilmById(id);
         film.setUsersLikeIds(savedFilm.getUsersLikeIds());
         films.put(id, film);
-        log.debug("Обновлен фильм: {}\nХранилище фильмов теперь в состоянии: {}", film, films);
+        log.info("Фильм обновлен в хранилище: {}", films);
         return film;
     }
 
     @Override
     public Collection<Film> getAllFilms() {
-        final Collection<Film> allFilms = films.values();
-        log.debug("Возвращаем коллекцию фильмов: {}", allFilms);
-        return allFilms;
+        return films.values();
     }
 
     @Override
     public Film getFilmById(long id) {
         final Film film = films.get(id);
         if (film == null) {
-            throw new FilmNotFoundException("Фильм с id=" + id + " не найден.");
+            throw new FilmNotFoundException("Фильм с ID: " + id + " не найден.");
         }
-        log.debug("Метод InMemoryFilmStorage.getFilmById. Возвращаем film={}", film);
         return film;
     }
 }

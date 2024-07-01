@@ -25,44 +25,39 @@ public class FilmService {
     }
 
     public Film saveFilm(Film film) {
-        log.debug("Метод FilmService.saveFilm. Сохраняем фильм={}", film);
         return filmStorage.saveFilm(film);
     }
 
     public Film updateFilm(Film film) {
-        log.debug("Метод FilmService.updateFilm. Обновляем фильм={}", film);
         return filmStorage.updateFilm(film);
     }
 
     public Collection<Film> getAllFilms() {
-        log.debug("Метод FilmService.getAllFilms. Получаем все фильмы.");
         return filmStorage.getAllFilms();
     }
 
     public Film getFilmById(long id) {
-        log.debug("Метод FilmService.getFilmById. Получаем фильм по id={}", id);
         return filmStorage.getFilmById(id);
     }
 
     public void addLike(long filmId, long userId) {
-        log.debug("Метод FilmService.addLike. Добавляем лайк от пользователя с id={} фильму с id={}", userId, filmId);
         userStorage.getUserById(userId); //проверка существования пользователя в хранилище
-        filmStorage.getFilmById(filmId).getUsersLikeIds().add(userId);
+        final Film film = filmStorage.getFilmById(filmId);
+        film.getUsersLikeIds().add(userId);
+        log.info("Пользователь с ID: {} поставил лайк фильму: {}", userId, film);
     }
 
     public void removeLike(long filmId, long userId) {
-        log.debug("Метод FilmService.removeLike. Убираем лайк от пользователя с id={} у фильма с id={}", userId, filmId);
         userStorage.getUserById(userId); //проверка существования пользователя в хранилище
-        filmStorage.getFilmById(filmId).getUsersLikeIds().remove(userId);
+        final Film film = filmStorage.getFilmById(filmId);
+        film.getUsersLikeIds().remove(userId);
+        log.info("Пользователь с ID: {} удалил лайк у фильма: {}", userId, film);
     }
 
     public List<Film> getPopularFilms(int count) {
-        log.debug("Метод FilmService.getPopularFilms. Получаем {} популярных фильмов.", count);
-        final List<Film> popularFilms = filmStorage.getAllFilms().stream()
+        return filmStorage.getAllFilms().stream()
                 .sorted(Comparator.comparingInt((Film film) -> film.getUsersLikeIds().size()).reversed())
                 .limit(count)
                 .collect(Collectors.toList());
-        log.debug("Метод FilmService.getPopularFilms. Возвращаем список популярных фильмов={}", popularFilms);
-        return popularFilms;
     }
 }

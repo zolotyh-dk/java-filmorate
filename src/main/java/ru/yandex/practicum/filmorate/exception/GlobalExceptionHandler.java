@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.exception;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,15 +39,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @Getter
     static class ErrorDetails {
-        private String error;
+        private final String error;
 
         public ErrorDetails(String error) {
             this.error = error;
-        }
-
-        public String getError() {
-            return error;
         }
     }
 }

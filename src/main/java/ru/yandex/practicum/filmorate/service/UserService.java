@@ -22,46 +22,50 @@ public class UserService {
     }
 
     public User saveUser(User user) {
-        log.debug("Метод UserService.saveUser. Сохраняем пользователя={}", user);
+        if (user.getName() == null || user.getName().isEmpty()) {
+            final String login = user.getLogin();
+            user.setName(login);
+            log.info("У пользователя не указано имя. Установили логин: {} в качестве имени.", login);
+        }
         return userStorage.saveUser(user);
     }
 
     public User updateUser(User user) {
-        log.debug("Метод UserService.updateUser. Обновляем пользователя={}", user);
+        if (user.getName() == null || user.getName().isEmpty()) {
+            final String login = user.getLogin();
+            user.setName(user.getLogin());
+            log.info("У пользователя не указано имя. Установили логин: {} в качестве имени.", login);
+        }
         return userStorage.updateUser(user);
     }
 
     public Collection<User> getAllUsers() {
-        log.debug("Метод UserService.getAllUsers. Получаем всех пользователей");
         return userStorage.getAllUsers();
     }
 
     public void addFriend(long userId, long friendId) {
-        log.debug("Метод UserService.addFriend. Пользователь с id={} добавляет друга с id={}", userId, friendId);
-        User user = userStorage.getUserById(userId);
+        final User user = userStorage.getUserById(userId);
         user.getFriendsIds().add(friendId);
-
-        User friend = userStorage.getUserById(friendId);
+        log.info("Добавили друга пользователю {}", user);
+        final User friend = userStorage.getUserById(friendId);
         friend.getFriendsIds().add(userId);
+        log.info("Добавили друга пользователю {}", friend);
     }
 
     public void removeFriend(long userId, long friendId) {
-        log.debug("Метод UserService.removeFriend. Пользователь с id={} удаляет друга с id={}", userId, friendId);
-        User user = userStorage.getUserById(userId);
+        final User user = userStorage.getUserById(userId);
         user.getFriendsIds().remove(friendId);
-
-        User friend = userStorage.getUserById(friendId);
+        log.info("Удалили друга у пользователя {}", user);
+        final User friend = userStorage.getUserById(friendId);
         friend.getFriendsIds().remove(userId);
+        log.info("Удалили друга у пользователя {}", friend);
     }
 
     public List<User> getCommonFriends(long userId, long otherId) {
-        log.debug("Метод UserService.getCommonFriends. Получаем общих друзей пользователей с id={} и с id={}", userId, otherId);
-        User user = userStorage.getUserById(userId);
-        Set<Long> userFriendsIds = user.getFriendsIds();
-
-        User other = userStorage.getUserById(otherId);
-        Set<Long> otherFriendsIds = other.getFriendsIds();
-
+        final Set<Long> userFriendsIds = userStorage.getUserById(userId).getFriendsIds();
+        log.info("ID друзей первого пользователя {}", userFriendsIds);
+        final Set<Long> otherFriendsIds = userStorage.getUserById(otherId).getFriendsIds();
+        log.info("ID друзей второго пользователя {}", userFriendsIds);
         return userFriendsIds.stream()
                 .filter(otherFriendsIds::contains)
                 .map(userStorage::getUserById)
@@ -69,12 +73,10 @@ public class UserService {
     }
 
     public User getUserById(long id) {
-        log.debug("Метод UserService.getUserById. Получаем пользователя по id={}", id);
         return userStorage.getUserById(id);
     }
 
     public List<User> getFriends(long id) {
-        log.debug("Метод UserService.getFriends. Получаем друзей пользователя с id={}", id);
         return userStorage.getFriends(id);
     }
 }

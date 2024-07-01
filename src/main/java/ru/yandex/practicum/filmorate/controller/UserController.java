@@ -23,49 +23,63 @@ public class UserController {
 
     @PostMapping
     public User saveUser(@Valid @RequestBody User user) {
-        log.debug("Метод UserController.saveUser. В теле запроса user={}", user);
-        return userService.saveUser(user);
+        log.info("Получен запрос на сохранение пользователя. POST /users c телом: {}", user);
+        final User savedUser = userService.saveUser(user);
+        log.info("Возвращаем сохраненного пользователя. POST /users c телом: {}", savedUser);
+        return savedUser;
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        log.debug("Метод UserController.updateUser. В теле запроса user={}", user);
-        return userService.updateUser(user);
+        log.info("Получен запрос на обновление пользователя. PUT /users c телом {}", user);
+        final User updatedUser = userService.updateUser(user);
+        log.info("Возвращаем обновленного пользователя. PUT /users c телом: {}", updatedUser);
+        return updatedUser;
     }
 
     @GetMapping
     public Collection<User> getAllUsers() {
-        log.debug("Метод UserController.getAllUsers");
-        return userService.getAllUsers();
+        log.info("Получен запрос на получение всех пользователей. GET /users");
+        final Collection<User> allUsers = userService.getAllUsers();
+        log.info("Возвращаем всех пользователей. GET /users c телом {}", allUsers);
+        return allUsers;
     }
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable long id) {
-        log.debug("Метод UserController.getUserById. В пути запроса id={}", id);
-        return userService.getUserById(id);
+        log.info("Получен запрос на получение пользователя по ID. GET /users/{}", id);
+        final User user = userService.getUserById(id);
+        log.info("Возвращаем пользователя. GET /users/{} c телом: {}", id, user);
+        return user;
     }
 
     @PutMapping("{id}/friends/{friendId}")
     public void addFriend(@PathVariable long id, @PathVariable long friendId) {
-        log.debug("Метод UserController.addFriend. В пути запроса userId={}, friendId={}", id, friendId);
+        log.info("Получен запрос на добавление в друзья. PUT /users/{}/friends/{}", id, friendId);
         userService.addFriend(id, friendId);
+        log.info("Возвращаем ответ OK. PUT /users/{}/friends/{}", id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void removeFriend(@PathVariable long id, @PathVariable long friendId) {
-        log.debug("Метод UserController.removeFriend. В пути запроса userId={}, friendId={}", id, friendId);
+        log.info("Получен запрос на удаление из друзей. DELETE /users/{}/friends/{}", id, friendId);
         userService.removeFriend(id, friendId);
+        log.info("Возвращаем ответ OK. DELETE /users/{}/friends/{}", id, friendId);
     }
 
     @GetMapping("/{id}/friends")
     public List<User> getFriends(@PathVariable long id) {
-        log.debug("Метод UserController.getFriends. В пути запроса id={}", id);
-        return userService.getFriends(id);
+        log.info("Получен запрос на получение списка друзей. GET /users/{}/friends", id);
+        final List<User> friends = userService.getFriends(id);
+        log.info("Возвращаем список друзей. GET /users/{}/friends c телом: {}", id, friends);
+        return friends;
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
-        log.debug("Метод UserController.getCommonFriends. В пути запроса id={}, otherId={}", id, otherId);
-        return userService.getCommonFriends(id, otherId);
+        log.info("Получен запрос на получение списка общих друзей. GET /users/{}/friends/common{}", id, otherId);
+        final List<User> commonFriends = userService.getCommonFriends(id, otherId);
+        log.info("Возвращаем список друзей. GET /users/{}/friends/common/{} c телом: {}", id, otherId, commonFriends);
+        return commonFriends;
     }
 }

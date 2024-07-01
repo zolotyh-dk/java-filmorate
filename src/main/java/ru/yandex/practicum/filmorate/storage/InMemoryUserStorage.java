@@ -18,11 +18,9 @@ public class InMemoryUserStorage implements UserStorage {
     public User saveUser(User user) {
         final long id = ++generatorId;
         user.setId(id);
-        if (user.getName() == null || user.getName().isEmpty()) {
-            user.setName(user.getLogin());
-        }
+        log.info("Фильму присвоен ID: {}", id);
         users.put(id, user);
-        log.debug("Сохранен пользователь: {}\nХранилище пользователей теперь в состоянии: {}", user, users);
+        log.info("Пользователь сохранен в хранилище: {}", users);
         return user;
     }
 
@@ -30,40 +28,30 @@ public class InMemoryUserStorage implements UserStorage {
     public User updateUser(User user) {
         final long id = user.getId();
         final User savedUser = getUserById(id);
-        if (user.getName() == null || user.getName().isEmpty()) {
-            user.setName(user.getLogin());
-        }
         user.setFriendsIds(savedUser.getFriendsIds());
         users.put(id, user);
-        log.debug("Обновлен пользователь: {}\nХранилище пользователей теперь в состоянии: {}", user, users);
+        log.debug("Обновлен пользователь в хранилище: {}", users);
         return user;
     }
 
     @Override
     public Collection<User> getAllUsers() {
-        Collection<User> allUsers = users.values();
-        log.debug("Возвращаем коллекцию пользователей: {}", allUsers);
-        return allUsers;
+        return users.values();
     }
 
     @Override
     public User getUserById(long id) {
-        User user = users.get(id);
+        final User user = users.get(id);
         if (user == null) {
-            log.error("Пользователь с id={} не найден", id);
-            throw new UserNotFoundException("Пользователь с id=" + id + " не найден.");
+            throw new UserNotFoundException("Пользователь с ID: " + id + " не найден.");
         }
-        log.debug("Метод InMemoryUserStorage.getUserById. Возвращаем user={}", user);
         return user;
     }
 
     @Override
     public List<User> getFriends(long id) {
-        User user = getUserById(id);
-        List<User> friends = user.getFriendsIds().stream()
+        return getUserById(id).getFriendsIds().stream()
                 .map(this::getUserById)
                 .collect(Collectors.toList());
-        log.debug("Метод InMemoryUserStorage.getFriends. Возвращаем список друзей пользователя с id={}: {}", id, friends);
-        return friends;
     }
 }
