@@ -31,6 +31,10 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     private int duration;
 
+    private Rating rating; //films.mpa_id <- mpa.get()
+
+    private Set<Genre> genres; //genre_films.film_id и genre_id
+
     @JsonIgnore
     private Set<Long> usersLikeIds;
 
