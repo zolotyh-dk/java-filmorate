@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.yandex.practicum.filmorate.exception.GlobalExceptionHandler;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.repository.UserRepository;
 
 import java.time.LocalDate;
 
@@ -27,7 +27,7 @@ class FilmControllerTest {
     @Autowired
     private FilmController filmController;
     @Autowired
-    private UserStorage userStorage;
+    private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
@@ -320,7 +320,7 @@ class FilmControllerTest {
         user.setLogin("login");
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
-        User savedUser = userStorage.saveUser(user);
+        User savedUser = userRepository.saveUser(user);
         return savedUser.getId();
     }
 }
