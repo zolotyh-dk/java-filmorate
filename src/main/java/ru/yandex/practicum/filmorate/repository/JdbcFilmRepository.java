@@ -1,33 +1,89 @@
 package ru.yandex.practicum.filmorate.repository;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 @Repository
-@RequiredArgsConstructor
 public class JdbcFilmRepository implements FilmRepository {
-//    private static final NamedParameterJdbcOperations jdbc;
+    private final NamedParameterJdbcOperations jdbc;
+
+    @Autowired
+    public JdbcFilmRepository(NamedParameterJdbcOperations jdbc) {
+        this.jdbc = jdbc;
+    }
 
     @Override
     public Film saveFilm(Film film) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        HashMap<String, Object> params = new HashMap<>();
-        params.put("name", film.getName());
-        //остальные параметры
+        final String sql = "INSERT INTO films (name, description, release_date, duration, rating_id) " +
+                            "VALUES (:name, :description, :releaseDate, :duration, :ratingId)";
 
-//        jdbc.update("INSERT INTO films (name) VALUES (:name)", params, keyHolder, new String[]{"id"});
-        //создать связи фильм - жанры
-        //batch
-        film.setId(keyHolder.getKeyAs(Long.class));
+        final MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("name", film.getName());
+        params.addValue("description", film.getDescription());
+        params.addValue("releaseDate", film.getReleaseDate());
+        params.addValue("duration", film.getDuration());
+        params.addValue("ratingId", film.getRating().getId());
+
+        final GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbc.update(sql, params, keyHolder, new String[]{"id"});
+        long filmId = keyHolder.getKey().longValue();
+        film.setId(filmId);
+
+        final List<Integer> genreIds = film.getGenres().stream().map(Genre::getId).toList();
+        createFilmGenreRelationships(filmId, genreIds);
         return film;
     }
+
+    private void createFilmGenreRelationships(long filmId, List<Integer> genreIds) {
+        final String sql = "INSERT INTO films_genres (film_id, genre_id) " +
+                           "VALUES (:filmId, :genreId)";
+        final List<MapSqlParameterSource> batchParams = new ArrayList<>();
+        for (int genreId : genreIds) {
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue("filmId", filmId);
+            params.addValue("genreId", genreId);
+            batchParams.add(params);
+        }
+        jdbc.batchUpdate(sql, batchParams.toArray(new MapSqlParameterSource[0]));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @Override
     public Film updateFilm(Film film) {
