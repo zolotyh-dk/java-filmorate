@@ -48,4 +48,16 @@ public class InMemoryFilmRepository implements FilmRepository {
         }
         return film;
     }
+
+    @Override
+    public void addLike(long filmId, long userId) {
+        final Film film = getFilmById(filmId);
+        film.getUsersLikeIds().add(userId);
+    }
+
+    @Override
+    public void removeLike(long filmId, long userId) {
+        final Film film = getFilmById(filmId);
+        film.getUsersLikeIds().remove(userId);
+    }
 }

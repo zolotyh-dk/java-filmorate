@@ -45,7 +45,6 @@ public class FilmService {
         if (rating == null) {
             throw new NotFoundException("Рейтинг не найдин в базе данных");
         }
-
         // Проверяем, что указанные в фильме жанры есть в БД
         if (film.getGenres() != null) {
             final List<Integer> genreIds = film.getGenres().stream().map(Genre::getId).toList();
@@ -54,14 +53,12 @@ public class FilmService {
                 throw new NotFoundException("Жанры не найдены в базе данных");
             }
         }
-
         return filmRepository.saveFilm(film);
     }
 
 
     public Film updateFilm(Film film) {
         final Film savedFilm = filmRepository.getFilmById(film.getId());
-
         // Проверяем, что указанные в фильме жанры есть в БД
         if (film.getGenres() != null) {
             final List<Integer> genreIds = film.getGenres().stream().map(Genre::getId).toList();
@@ -70,7 +67,6 @@ public class FilmService {
                 throw new NotFoundException("Жанры не найдены в базе данных");
             }
         }
-
         // Проверяем, что указанный в фильме рейтинг есть в БД
         final Rating rating = ratingRepository.getById(film.getRating().getId());
         if (rating == null) {
@@ -79,11 +75,6 @@ public class FilmService {
 
         film.setUsersLikeIds(savedFilm.getUsersLikeIds());
         return filmRepository.updateFilm(film);
-
-        //Дальше в репозитории
-        //Обновить фильм и его рейтинг UPDATE
-        //Удаляем связи фильмы - жанры DELETE т.к мы не знаем какие были жанры до обновления
-        //Добавить связи фильмы - жанры через batch jdbc INSERT чтобы объединить несколько запросов
     }
 
     public Collection<Film> getAllFilms() {
@@ -91,22 +82,19 @@ public class FilmService {
     }
 
     public Film getFilmById(long id) {
-//        final Film film = filmRepository.getFilmById(id).orElseThrow(() -> new NotFoundException("Фильм с id..."))
         return filmRepository.getFilmById(id);
     }
 
     public void addLike(long filmId, long userId) {
         userRepository.getUserById(userId); //проверка существования пользователя в хранилище
-        final Film film = filmRepository.getFilmById(filmId);
-        film.getUsersLikeIds().add(userId);
-        log.info("Пользователь с ID: {} поставил лайк фильму: {}", userId, film);
+        filmRepository.addLike(filmId, userId);
+        log.info("Пользователь с ID: {} поставил лайк фильму c ID: {}", userId, filmId);
     }
 
     public void removeLike(long filmId, long userId) {
         userRepository.getUserById(userId); //проверка существования пользователя в хранилище
-        final Film film = filmRepository.getFilmById(filmId);
-        film.getUsersLikeIds().remove(userId);
-        log.info("Пользователь с ID: {} удалил лайк у фильма: {}", userId, film);
+        filmRepository.removeLike(filmId, userId);
+        log.info("Пользователь с ID: {} удалил лайк у фильма c ID: {}", userId, filmId);
     }
 
     public List<Film> getPopularFilms(int count) {

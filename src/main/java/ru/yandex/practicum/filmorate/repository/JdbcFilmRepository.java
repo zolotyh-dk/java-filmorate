@@ -1,16 +1,24 @@
 package ru.yandex.practicum.filmorate.repository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
+import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Rating;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class JdbcFilmRepository implements FilmRepository {
@@ -23,8 +31,10 @@ public class JdbcFilmRepository implements FilmRepository {
 
     @Override
     public Film saveFilm(Film film) {
-        final String sql = "INSERT INTO films (name, description, release_date, duration, rating_id) " +
-                            "VALUES (:name, :description, :releaseDate, :duration, :ratingId)";
+        final String sql = """
+                INSERT INTO films (name, description, release_date, duration, rating_id)
+                VALUES (:name, :description, :releaseDate, :duration, :ratingId)
+                """;
 
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("name", film.getName());
@@ -44,8 +54,10 @@ public class JdbcFilmRepository implements FilmRepository {
     }
 
     private void createFilmGenreRelationships(long filmId, List<Integer> genreIds) {
-        final String sql = "INSERT INTO films_genres (film_id, genre_id) " +
-                           "VALUES (:filmId, :genreId)";
+        final String sql = """
+                INSERT INTO films_genres (film_id, genre_id)
+                VALUES (:filmId, :genreId)
+                """;
         final List<MapSqlParameterSource> batchParams = new ArrayList<>();
         for (int genreId : genreIds) {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -56,79 +68,211 @@ public class JdbcFilmRepository implements FilmRepository {
         jdbc.batchUpdate(sql, batchParams.toArray(new MapSqlParameterSource[0]));
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     @Override
     public Film updateFilm(Film film) {
-        return null;
+        final String updateFilmSql = """
+                UPDATE films
+                SET name = :name, description = :description, release_date = :releaseDate, duration = :duration, rating_id = :ratingId
+                WHERE id = :filmId
+                """;
+
+        final String deleteGenresSql = """
+                DELETE FROM films_genres
+                WHERE film_id = :filmId
+                """;
+
+        final String insertNewGenresSql = """
+                INSERT INTO films_genres (film_id, genre_id)
+                VALUES (:filmId, :genreId)""";
+
+        // Обновляем информацию о фильме
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("filmId", film.getId());
+        params.addValue("name", film.getName());
+        params.addValue("description", film.getDescription());
+        params.addValue("releaseDate", film.getReleaseDate());
+        params.addValue("duration", film.getDuration());
+        params.addValue("rating_id", film.getRating().getId());
+        jdbc.update(updateFilmSql, params);
+
+        // Удаляем существующие связи фильм - жанры
+        jdbc.update(deleteGenresSql, params);
+
+        // Выполняем batch-вставку новых связей фильм - жанры
+        List<SqlParameterSource> batchParams = new ArrayList<>();
+        for (Genre genre : film.getGenres()) {
+            MapSqlParameterSource batchParam = new MapSqlParameterSource();
+            batchParam.addValue("filmId", film.getId());
+            batchParam.addValue("genreId", genre.getId());
+            batchParams.add(batchParam);
+        }
+        jdbc.batchUpdate(insertNewGenresSql, batchParams.toArray(new SqlParameterSource[0]));
+
+        return film;
     }
 
+    /*1. получить все жанры (их мало)
+      2. получить все фильмы с рейтингом, но без жанра
+      3. получить связи жанры - фильмы static record GenreRelation(film_id, genre_id)
+      4. объединить */
     @Override
     public Collection<Film> getAllFilms() {
-        //1. получить все жанры (их мало)
-        //2. получить все фильмы с рейтингом, но без жанра
-        //3. получить связи жанры - фильмыы static record GenreRelation(film_id, genre_id)
-        //Объединить
-        return null;
+        // Получаем все жанры всех жанров
+        final String getGenresSql = """
+                                    SELECT id, name
+                                    FROM genres
+                """;
+        final List<Genre> genres = jdbc.query(getGenresSql, new GenreRowMapper());
+
+        // Получение всех фильмов с рейтингом
+        final String getFilmsSql = """
+                                    SELECT f.id,
+                                           f.name,
+                                           f.description,
+                                           f.release_date,
+                                           f.duration,
+                                           r.id as rating_id,
+                                           r.name as rating_name
+                                    FROM films f
+                                    JOIN ratings r ON f.rating_id = r.id
+                """;
+        final List<Film> films = jdbc.query(getFilmsSql, new FilmRowMapper());
+
+        // Получение всех связей между фильмами и жанрами
+        final String getFilmGenreRelationsSql = """
+                SELECT film_id, genre_id
+                FROM films_genres
+                """;
+        List<FilmGenreRelation> filmGenreRelations = jdbc.query(getFilmGenreRelationsSql, (resultSet, rowNum) ->
+                new FilmGenreRelation(resultSet.getLong("film_id"), resultSet.getInt("genre_id")));
+
+        // Создаем мапы для удобного доступа к фильмам и жанрам по их id
+        final Map<Long, Film> filmMap = films.stream().collect(Collectors.toMap(Film::getId, film -> film));
+        final Map<Integer, Genre> genreMap = genres.stream().collect(Collectors.toMap(Genre::getId, genre -> genre));
+
+        // Добавление жанров к соответствующим фильмам
+        for (FilmGenreRelation relation : filmGenreRelations) {
+            Film film = filmMap.get(relation.filmId());
+            if (film != null) {
+                Genre genre = genreMap.get(relation.genreId());
+                if (genre != null) {
+                    film.addGenre(genre);
+                }
+            }
+        }
+
+        return films;
+    }
+
+    // Класс для представления связи между фильмом и жанром
+    private record FilmGenreRelation(long filmId, int genreId) {
     }
 
     @Override
     public Film getFilmById(long id) {
-        //select from films join MPA join GENRES where film_id = :id
-        //ResultSetExtractor
-        //ResultSet rs
-        //Film film = null;
-        //while(rs.next()) {
-        //  if(film == null) {
-        //      film = new Film(); //заполняем все поля, а жанры пустые
-        //  }
-        // добавляем жанры
-        // }
-        //return film;
-        return null;
+        String sql = """
+                   SELECT f.id as film_id,
+                          f.name as film_name,
+                          f.description,
+                          f.release_date,
+                          f.duration,
+                          r.id as rating_id,
+                          r.name as rating_name,
+                          g.id as genre_id,
+                          g.name as genre_name
+                   FROM films f
+                   JOIN ratings r ON f.rating_id = r.id
+                   LEFT JOIN films_genres fg ON f.id = fg.film_id
+                   LEFT JOIN genres g ON fg.genre_id = g.id
+                   WHERE f.id = :id
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("id", id);
+        return jdbc.query(sql, params, new FilmResultSetExtractor());
     }
 
-//    @Override
+    private static class FilmResultSetExtractor implements ResultSetExtractor<Film> {
+        @Override
+        public Film extractData(ResultSet resultSet) throws SQLException, DataAccessException {
+            Film.FilmBuilder filmBuilder = null;
+            Set<Genre> genres = new HashSet<>();
+
+            while (resultSet.next()) {
+                if (filmBuilder == null) {
+                    Rating rating = Rating.builder()
+                            .id(resultSet.getInt("rating_id"))
+                            .name(resultSet.getString("rating_name"))
+                            .build();
+
+                    filmBuilder = Film.builder()
+                            .id(resultSet.getLong("film_id"))
+                            .name(resultSet.getString("film_name"))
+                            .description(resultSet.getString("description"))
+                            .releaseDate(resultSet.getDate("release_date").toLocalDate())
+                            .duration(resultSet.getInt("duration"))
+                            .rating(rating);
+                }
+
+                int genreId = resultSet.getInt("genre_id");
+                if (!resultSet.wasNull()) {
+                    Genre genre = Genre.builder()
+                            .id(genreId)
+                            .name(resultSet.getString("genre_name"))
+                            .build();
+                    genres.add(genre);
+                }
+            }
+
+            if (filmBuilder != null) {
+                throw new NotFoundException("Фильм не найден");
+            }
+            Film film = filmBuilder.build();
+            film.setGenres(genres);
+            return film;
+        }
+    }
+
+    @Override
     public void addLike(long filmId, long userId) {
-        //merge если запись есть то она обновится (то есть ничего не произойдет)
-        //а если нет то она будет создана
+        //Проверяем нет ли уже лайка от этого пользователя этому фильму
+        String checkSql = """
+                SELECT COUNT(*)
+                FROM likes
+                WHERE film_id = :filmId AND user_id = :userId
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("filmId", filmId);
+        params.addValue("userId", userId);
+        int count = jdbc.queryForObject(checkSql, params, Integer.class);
+
+        //Если строки нет - делаем INSERT
+        if (count == 0) {
+            String insertSql = """
+                    INSERT INTO likes (film_id, user_id)
+                    VALUES (:filmId, :userId)
+                    """;
+            jdbc.update(insertSql, params);
+        }
+        //Если такая строка уже есть - не делаем ничего
     }
 
-//    @Override
-    public void deleteLike(long filmId, long userId) {
-
+    @Override
+    public void removeLike(long filmId, long userId) {
+        String sql = """
+                DELETE FROM likes
+                WHERE film_id = :filmId AND user_id = :userId
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("filmId", filmId);
+        params.addValue("userId", userId);
+        jdbc.update(sql, params);
     }
 
-//    @Override
-    public List<Film>getTopPopular(int count) {
-        //сортировка и лимит
+    //    @Override
+    public List<Film> getTopPopular(int count) {
+        String sql = """
+                SELECT
+                """;
         return List.of();
     }
 }
