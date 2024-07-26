@@ -1,13 +1,13 @@
-package ru.yandex.practicum.filmorate.repository;
+package ru.yandex.practicum.filmorate.repository.inmemory;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.repository.FilmRepository;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -44,7 +44,7 @@ public class InMemoryFilmRepository implements FilmRepository {
     public Film getFilmById(long id) {
         final Film film = films.get(id);
         if (film == null) {
-            throw new FilmNotFoundException("Фильм с ID: " + id + " не найден.");
+            throw new NotFoundException("Фильм с ID: " + id + " не найден.");
         }
         return film;
     }
@@ -60,4 +60,14 @@ public class InMemoryFilmRepository implements FilmRepository {
         final Film film = getFilmById(filmId);
         film.getUsersLikeIds().remove(userId);
     }
+
+    @Override
+    public List<Film> getTopPopular(int count) {
+        return getAllFilms().stream()
+                .sorted(Comparator.comparingInt((Film film) -> film.getUsersLikeIds().size()).reversed())
+                .limit(count)
+                .collect(Collectors.toList());
+    }
+
+
 }

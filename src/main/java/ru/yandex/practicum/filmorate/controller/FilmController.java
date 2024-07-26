@@ -49,7 +49,7 @@ public class FilmController {
     public Film getFilmById(@PathVariable long id) {
         log.info("Получен запрос на получение фильма по ID. GET /films/{}", id);
         final Film film = filmService.getFilmById(id);
-        log.info("Возвращаем фильм. GET /films c телом: {}", film);
+        log.info("Возвращаем фильм. GET /films/{} c телом: {}", id, film);
         return film;
     }
 

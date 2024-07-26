@@ -25,11 +25,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler({FilmNotFoundException.class, UserNotFoundException.class})
+    @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Object> handleNotFoundExceptions(RuntimeException exception) {
         log.error("Ресурс не найден: {}", exception.getMessage());
         ErrorDetails errorDetails = new ErrorDetails(exception.getMessage());
-        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
