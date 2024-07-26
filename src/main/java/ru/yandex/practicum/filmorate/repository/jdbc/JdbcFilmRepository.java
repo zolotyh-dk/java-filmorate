@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.repository.jdbc;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -10,7 +9,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -77,7 +76,7 @@ public class JdbcFilmRepository implements FilmRepository {
     public Film updateFilm(Film film) {
         final String updateFilmSql = """
                 UPDATE films
-                SET name = :name, description = :description, release_date = :releaseDate, duration = :duration, rating_id = :ratingId
+                SET name = :name, description = :description, release_date = :releaseDate, duration = :duration, mpa_id = :mpaId
                 WHERE id = :filmId
                 """;
 
@@ -90,29 +89,31 @@ public class JdbcFilmRepository implements FilmRepository {
                 INSERT INTO films_genres (film_id, genre_id)
                 VALUES (:filmId, :genreId)""";
 
-        // Обновляем информацию о фильме
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("filmId", film.getId());
         params.addValue("name", film.getName());
         params.addValue("description", film.getDescription());
         params.addValue("releaseDate", film.getReleaseDate());
         params.addValue("duration", film.getDuration());
-        params.addValue("rating_id", film.getMpa().getId());
+        params.addValue("mpaId", film.getMpa().getId());
+        log.debug("Обновляем информацию о фильме {}", params);
         jdbc.update(updateFilmSql, params);
 
-        // Удаляем существующие связи фильм - жанры
+        log.debug("Удаляем существующие связи фильм-жанры");
         jdbc.update(deleteGenresSql, params);
 
-        // Выполняем batch-вставку новых связей фильм - жанры
-        List<SqlParameterSource> batchParams = new ArrayList<>();
-        for (Genre genre : film.getGenres()) {
-            MapSqlParameterSource batchParam = new MapSqlParameterSource();
-            batchParam.addValue("filmId", film.getId());
-            batchParam.addValue("genreId", genre.getId());
-            batchParams.add(batchParam);
+        if (film.getGenres() != null) {
+            List<SqlParameterSource> batchParams = new ArrayList<>();
+            for (Genre genre : film.getGenres()) {
+                MapSqlParameterSource batchParam = new MapSqlParameterSource();
+                batchParam.addValue("filmId", film.getId());
+                batchParam.addValue("genreId", genre.getId());
+                batchParams.add(batchParam);
+            }
+            log.debug("Выполняем batch-вставку новых связей фильм - жанры: {}", batchParams);
+            jdbc.batchUpdate(insertNewGenresSql, batchParams.toArray(new SqlParameterSource[0]));
         }
-        jdbc.batchUpdate(insertNewGenresSql, batchParams.toArray(new SqlParameterSource[0]));
-
+        log.debug("Возвращаем обновленный фильм: {}", film);
         return film;
     }
 
@@ -122,36 +123,39 @@ public class JdbcFilmRepository implements FilmRepository {
       4. объединить */
     @Override
     public Collection<Film> getAllFilms() {
-        // Получаем все жанры всех жанров
+        // Получение все жанры
         final String getGenresSql = """
                                     SELECT id, name
                                     FROM genres
                 """;
         final List<Genre> genres = jdbc.query(getGenresSql, new GenreRowMapper());
+        log.debug("Получили все жанры из БД, размер списка: {}", genres.size());
 
-        // Получение всех фильмов с рейтингом
+        // Получение всех фильмов с рейтингом, но без жанров
         final String getFilmsSql = """
                                     SELECT f.id,
                                            f.name,
                                            f.description,
                                            f.release_date,
                                            f.duration,
-                                           r.id as rating_id,
-                                           r.name as rating_name
+                                           m.id as mpa_id,
+                                           m.name as mpa_name
                                     FROM films f
-                                    JOIN ratings r ON f.rating_id = r.id
+                                    LEFT JOIN mpa AS m ON f.mpa_id = m.id
                 """;
         final List<Film> films = jdbc.query(getFilmsSql, new FilmRowMapper());
+        log.debug("Получили все фильмы из БД, размер списка: {}", films.size());
 
         // Получение всех связей между фильмами и жанрами
         final String getFilmGenreRelationsSql = """
                 SELECT film_id, genre_id
                 FROM films_genres
                 """;
-        List<FilmGenreRelation> filmGenreRelations = jdbc.query(getFilmGenreRelationsSql, (resultSet, rowNum) ->
+        final List<FilmGenreRelation> filmGenreRelations = jdbc.query(getFilmGenreRelationsSql, (resultSet, rowNum) ->
                 new FilmGenreRelation(resultSet.getLong("film_id"), resultSet.getInt("genre_id")));
+        log.debug("Получили все связи фильм-жанр из БД, размер списка: {}", filmGenreRelations.size());
 
-        // Создаем мапы для удобного доступа к фильмам и жанрам по их id
+        // Создаем мапы для удобного доступа к фильмам и жанрам по их id (позволяет избежать вложенных циклов ниже)
         final Map<Long, Film> filmMap = films.stream().collect(Collectors.toMap(Film::getId, film -> film));
         final Map<Integer, Genre> genreMap = genres.stream().collect(Collectors.toMap(Genre::getId, genre -> genre));
 
@@ -165,7 +169,7 @@ public class JdbcFilmRepository implements FilmRepository {
                 }
             }
         }
-
+        log.debug("Возвращаем все фильмы из БД, размер списка: {}", films.size());
         return films;
     }
 
@@ -193,6 +197,7 @@ public class JdbcFilmRepository implements FilmRepository {
                 """;
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("id", id);
+        log.debug("Ищем в базе данных фильм с ID: {}", id);
         return jdbc.query(sql, params, new FilmResultSetExtractor());
     }
 
@@ -231,11 +236,13 @@ public class JdbcFilmRepository implements FilmRepository {
                 }
             }
 
-            if (filmBuilder != null) {
-                throw new NotFoundException("Фильм не найден");
+            if (filmBuilder == null) {
+                throw new FilmNotFoundException("Фильм не найден в базе данных");
             }
+
             Film film = filmBuilder.build();
             film.setGenres(genres);
+            log.debug("Получили из базы данных фильм: {}", film);
             return film;
         }
     }
@@ -243,12 +250,12 @@ public class JdbcFilmRepository implements FilmRepository {
     @Override
     public void addLike(long filmId, long userId) {
         //Проверяем нет ли уже лайка от этого пользователя этому фильму
-        String checkSql = """
+        final String checkSql = """
                 SELECT COUNT(*)
                 FROM likes
                 WHERE film_id = :filmId AND user_id = :userId
                 """;
-        MapSqlParameterSource params = new MapSqlParameterSource();
+        final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("filmId", filmId);
         params.addValue("userId", userId);
         int count = jdbc.queryForObject(checkSql, params, Integer.class);
@@ -266,11 +273,11 @@ public class JdbcFilmRepository implements FilmRepository {
 
     @Override
     public void removeLike(long filmId, long userId) {
-        String sql = """
+        final String sql = """
                 DELETE FROM likes
                 WHERE film_id = :filmId AND user_id = :userId
                 """;
-        MapSqlParameterSource params = new MapSqlParameterSource();
+        final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("filmId", filmId);
         params.addValue("userId", userId);
         jdbc.update(sql, params);
@@ -279,17 +286,17 @@ public class JdbcFilmRepository implements FilmRepository {
     @Override
     public List<Film> getTopPopular(int count) {
         // SQL-запрос для получения самых популярных фильмов с ограничением по количеству
-        String sql = """
+        final String sql = """
                 SELECT f.id,
                        f.name,
                        f.description,
                        f.release_date,
                        f.duration,
-                       r.id AS rating_id,
-                       r.name AS rating_name,
+                       m.id AS mpa_id,
+                       m.name AS mpa_name,
                        l.like_count
                 FROM films f
-                JOIN ratings r ON f.rating_id = r.id
+                JOIN mpa AS m ON f.mpa_id = m.id
                 LEFT JOIN (
                     SELECT film_id, COUNT(*) AS like_count
                     FROM likes
@@ -299,7 +306,7 @@ public class JdbcFilmRepository implements FilmRepository {
                 LIMIT :count
                 """;
 
-        MapSqlParameterSource params = new MapSqlParameterSource();
+        final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("count", count);
 
         return jdbc.query(sql, params, new FilmRowMapper());

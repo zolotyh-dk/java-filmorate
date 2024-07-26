@@ -11,6 +11,7 @@ import lombok.Data;
 import ru.yandex.practicum.filmorate.validator.ValidReleaseDate;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -40,6 +41,9 @@ public class Film {
     private Set<Long> usersLikeIds;
 
     public void addGenre(Genre genre) {
+        if (genres == null) {
+            genres = new HashSet<>();
+        }
         genres.add(genre);
     }
 }

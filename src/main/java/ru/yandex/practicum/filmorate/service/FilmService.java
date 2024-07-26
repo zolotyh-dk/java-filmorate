@@ -47,7 +47,7 @@ public class FilmService {
         if (film.getGenres() != null) {
             final List<Integer> genreIds = film.getGenres().stream().map(Genre::getId).toList();
             final List<Genre> savedGenres = genreRepository.getGenresByIds(genreIds);
-            log.debug("Запросили жанры фильма из БД для проверки их существования с ID:{} жанры = {}", genreIds, savedGenres);;
+            log.debug("Запросили жанры фильма из БД для проверки их существования с ID:{} жанры = {}", genreIds, savedGenres);
             if (genreIds.size() != savedGenres.size()) {
                 throw new NotFoundException("Жанры c ID: " + genreIds + " не найдены в базе данных");
             }
@@ -58,6 +58,7 @@ public class FilmService {
 
     public Film updateFilm(Film film) {
         final Film savedFilm = filmRepository.getFilmById(film.getId());
+        log.debug("Проверили, что фильм с таким ID: {} существует в базе данных", film.getId());
 
         // Проверяем, что указанный в фильме рейтинг есть в БД
         if (film.getMpa() != null) {
