@@ -1,11 +1,10 @@
-package ru.yandex.practicum.filmorate.repository.jdbc;
+package ru.yandex.practicum.filmorate.repository.friend;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.repository.FriendRepository;
 
 import java.util.List;
 

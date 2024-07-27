@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.repository;
+package ru.yandex.practicum.filmorate.repository.genre;
 
 import ru.yandex.practicum.filmorate.model.Genre;
 

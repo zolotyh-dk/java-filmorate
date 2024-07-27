@@ -1,14 +1,13 @@
-package ru.yandex.practicum.filmorate.repository.jdbc;
+package ru.yandex.practicum.filmorate.repository.genre;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.GenreNotFoundException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.repository.GenreRepository;
 
 import java.util.Collection;
 import java.util.List;
@@ -57,6 +56,6 @@ public class JdbcGenreRepository implements GenreRepository {
         params.addValue("id", id);
         log.debug("Ищем в базе данных жанр с ID: {}", id);
         return jdbc.query(sql, params, new GenreRowMapper()).stream().findFirst().orElseThrow(() ->
-                new GenreNotFoundException("Жанр с ID " + id + " не найден в базе данных"));
+                new NotFoundException("Жанр с ID " + id + " не найден в базе данных"));
     }
 }

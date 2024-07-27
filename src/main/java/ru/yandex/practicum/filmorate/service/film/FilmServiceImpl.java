@@ -2,18 +2,15 @@ package ru.yandex.practicum.filmorate.service.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.MpaNotFoundException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.RequestException;
+import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.repository.FilmRepository;
-import ru.yandex.practicum.filmorate.repository.GenreRepository;
-import ru.yandex.practicum.filmorate.repository.MpaRepository;
-import ru.yandex.practicum.filmorate.repository.UserRepository;
+import ru.yandex.practicum.filmorate.repository.film.FilmRepository;
+import ru.yandex.practicum.filmorate.repository.genre.GenreRepository;
+import ru.yandex.practicum.filmorate.repository.mpa.MpaRepository;
 
 import java.util.Collection;
 import java.util.List;
@@ -43,8 +40,8 @@ public class FilmServiceImpl implements FilmService {
             try {
                 final Mpa savedMpa = mpaRepository.getMpaById(mpaId);
                 log.debug("Запросили рейтинг фильма из БД. Рейтинг с ID: {} найден: {}", mpaId, savedMpa);
-            } catch (MpaNotFoundException e) {
-                throw new RequestException(e.getMessage());
+            } catch (NotFoundException e) {
+                throw new BadRequestException(e.getMessage());
             }
         }
         // Проверяем, что указанные в фильме жанры есть в БД
@@ -53,7 +50,7 @@ public class FilmServiceImpl implements FilmService {
             final List<Genre> savedGenres = genreRepository.getGenresByIds(genreIds);
             log.debug("Запросили жанры фильма из БД для проверки их существования с ID:{} жанры = {}", genreIds, savedGenres);
             if (genreIds.size() != savedGenres.size()) {
-                throw new NotFoundException("Жанры c ID: " + genreIds + " не найдены в базе данных");
+                throw new BadRequestException("Жанры c ID: " + genreIds + " не найдены в базе данных");
             }
         }
         return filmRepository.saveFilm(film);

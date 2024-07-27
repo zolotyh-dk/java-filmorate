@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.repository.jdbc;
+package ru.yandex.practicum.filmorate.repository.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,10 +6,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.repository.UserRepository;
 
 import java.util.Collection;
 import java.util.List;
@@ -79,7 +78,7 @@ public class JdbcUserRepository implements UserRepository {
         params.addValue("id", id);
         log.debug("Ищем в базе данных пользователя с ID: {}", id);
         return jdbc.query(sql, params, new UserRowMapper()).stream().findFirst()
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с ID: " + id + " не найден в БД."));
+                .orElseThrow(() -> new NotFoundException("Пользователь с ID: " + id + " не найден в БД."));
     }
 
     @Override

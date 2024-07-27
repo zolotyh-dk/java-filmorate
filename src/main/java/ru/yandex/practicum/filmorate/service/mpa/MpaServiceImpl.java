@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.service.mpa;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.repository.MpaRepository;
+import ru.yandex.practicum.filmorate.repository.mpa.MpaRepository;
 
 import java.util.Collection;
 

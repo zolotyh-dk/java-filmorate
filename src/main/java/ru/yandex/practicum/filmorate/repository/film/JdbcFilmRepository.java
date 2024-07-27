@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.repository.jdbc;
+package ru.yandex.practicum.filmorate.repository.film;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,13 +9,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.repository.FilmRepository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -239,7 +238,7 @@ public class JdbcFilmRepository implements FilmRepository {
             }
 
             if (filmBuilder == null) {
-                throw new FilmNotFoundException("Фильм не найден в базе данных");
+                throw new NotFoundException("Фильм не найден в базе данных");
             }
 
             Film film = filmBuilder.build();
@@ -247,44 +246,6 @@ public class JdbcFilmRepository implements FilmRepository {
             log.debug("Получили из базы данных фильм: {}", film);
             return film;
         }
-    }
-
-    @Override
-    public void addLike(long filmId, long userId) {
-        //Проверяем нет ли уже лайка от этого пользователя этому фильму
-        final String checkSql = """
-                SELECT COUNT(*)
-                FROM likes
-                WHERE film_id = :filmId AND user_id = :userId
-                """;
-        final MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("filmId", filmId);
-        params.addValue("userId", userId);
-        int count = jdbc.queryForObject(checkSql, params, Integer.class);
-
-        //Если строки нет - делаем INSERT
-        if (count == 0) {
-            String insertSql = """
-                    INSERT INTO likes (film_id, user_id)
-                    VALUES (:filmId, :userId)
-                    """;
-            jdbc.update(insertSql, params);
-        }else {
-            //Если такая строка уже есть - не делаем ничего
-            log.debug("В БД уже содержится лайк от пользователя ID:{} фильму ID:{}", userId, filmId);
-        }
-    }
-
-    @Override
-    public void removeLike(long filmId, long userId) {
-        final String sql = """
-                DELETE FROM likes
-                WHERE film_id = :filmId AND user_id = :userId
-                """;
-        final MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("filmId", filmId);
-        params.addValue("userId", userId);
-        jdbc.update(sql, params);
     }
 
     @Override

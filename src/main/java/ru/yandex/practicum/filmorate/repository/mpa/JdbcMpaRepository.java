@@ -1,13 +1,12 @@
-package ru.yandex.practicum.filmorate.repository.jdbc;
+package ru.yandex.practicum.filmorate.repository.mpa;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.MpaNotFoundException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.MpaRowMapper;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.repository.MpaRepository;
 
 import java.util.Collection;
 
@@ -26,7 +25,7 @@ public class JdbcMpaRepository implements MpaRepository {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("id", id);
         return jdbc.query(sql, params, new MpaRowMapper()).stream().findFirst().orElseThrow(() ->
-                new MpaNotFoundException("Рейтинг с ID: " + id + " не найден в базе данных"));
+                new NotFoundException("Рейтинг с ID: " + id + " не найден в базе данных"));
     }
 
     @Override
