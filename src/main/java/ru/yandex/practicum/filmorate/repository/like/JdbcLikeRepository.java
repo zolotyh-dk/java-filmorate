@@ -36,7 +36,7 @@ public class JdbcLikeRepository implements LikeRepository {
                     VALUES (:filmId, :userId)
                     """;
             jdbc.update(insertSql, params);
-        }else {
+        } else {
             //Если такая строка уже есть - не делаем ничего
             log.debug("В БД уже содержится лайк от пользователя ID:{} фильму ID:{}", userId, filmId);
         }
