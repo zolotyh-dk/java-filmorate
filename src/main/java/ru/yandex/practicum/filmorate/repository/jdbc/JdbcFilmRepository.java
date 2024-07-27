@@ -40,7 +40,7 @@ public class JdbcFilmRepository implements FilmRepository {
         params.addValue("description", film.getDescription());
         params.addValue("releaseDate", film.getReleaseDate());
         params.addValue("duration", film.getDuration());
-        Mpa mpa = film.getMpa();
+        final Mpa mpa = film.getMpa();
         if (mpa != null) {
             params.addValue("mpaId", film.getMpa().getId());
         } else {
@@ -51,8 +51,10 @@ public class JdbcFilmRepository implements FilmRepository {
         long filmId = keyHolder.getKey().longValue();
         film.setId(filmId);
         log.info("Фильму присвоен в БД ID: {}", filmId);
-        final List<Integer> genreIds = film.getGenres().stream().map(Genre::getId).toList();
-        createFilmGenreRelationships(filmId, genreIds);
+        if (film.getGenres() != null) {
+            final List<Integer> genreIds = film.getGenres().stream().map(Genre::getId).toList();
+            createFilmGenreRelationships(filmId, genreIds);
+        }
         return film;
     }
 
@@ -89,7 +91,7 @@ public class JdbcFilmRepository implements FilmRepository {
                 INSERT INTO films_genres (film_id, genre_id)
                 VALUES (:filmId, :genreId)""";
 
-        MapSqlParameterSource params = new MapSqlParameterSource();
+        final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("filmId", film.getId());
         params.addValue("name", film.getName());
         params.addValue("description", film.getDescription());
@@ -123,7 +125,7 @@ public class JdbcFilmRepository implements FilmRepository {
       4. объединить */
     @Override
     public Collection<Film> getAllFilms() {
-        // Получение все жанры
+        // Получаем все жанры
         final String getGenresSql = """
                                     SELECT id, name
                                     FROM genres
@@ -131,7 +133,7 @@ public class JdbcFilmRepository implements FilmRepository {
         final List<Genre> genres = jdbc.query(getGenresSql, new GenreRowMapper());
         log.debug("Получили все жанры из БД, размер списка: {}", genres.size());
 
-        // Получение всех фильмов с рейтингом, но без жанров
+        // Получаем все фильмы с рейтингом, но без жанров
         final String getFilmsSql = """
                                     SELECT f.id,
                                            f.name,
@@ -267,8 +269,10 @@ public class JdbcFilmRepository implements FilmRepository {
                     VALUES (:filmId, :userId)
                     """;
             jdbc.update(insertSql, params);
+        }else {
+            //Если такая строка уже есть - не делаем ничего
+            log.debug("В БД уже содержится лайк от пользователя ID:{} фильму ID:{}", userId, filmId);
         }
-        //Если такая строка уже есть - не делаем ничего
     }
 
     @Override

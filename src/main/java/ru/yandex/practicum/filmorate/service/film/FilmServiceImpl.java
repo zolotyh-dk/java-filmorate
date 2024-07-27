@@ -1,10 +1,12 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.service.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.MpaNotFoundException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.RequestException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -18,30 +20,32 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class FilmService {
+public class FilmServiceImpl implements FilmService {
     private final FilmRepository filmRepository;
-    private final UserRepository userRepository;
     private final GenreRepository genreRepository;
     private final MpaRepository mpaRepository;
 
     @Autowired
-    public FilmService(@Qualifier("jdbcFilmRepository") FilmRepository filmRepository,
-                       UserRepository userRepository,
-                       GenreRepository genreRepository,
-                       MpaRepository mpaRepository) {
+    public FilmServiceImpl(FilmRepository filmRepository,
+                           GenreRepository genreRepository,
+                           MpaRepository mpaRepository) {
         this.filmRepository = filmRepository;
-        this.userRepository = userRepository;
         this.genreRepository = genreRepository;
         this.mpaRepository = mpaRepository;
     }
 
+    @Override
     public Film saveFilm(Film film) {
         // Проверяем, что указанный в фильме рейтинг есть в БД
         if (film.getMpa() != null) {
-            int ratingId = film.getMpa().getId();
-            final Mpa savedMpa = mpaRepository.getMpaById(ratingId).orElseThrow(() ->
-                    new NotFoundException("Рейтинг MPA с ID: " + ratingId + " не найден в базе данных"));
-            log.debug("Запросили рейтинг фильма из БД. Рейтинг с ID: {} найден: {}", ratingId, savedMpa);
+            int mpaId = film.getMpa().getId();
+            //Оборачиваем NotFoundException т.к. Postman в этом конкретном случае ожидет код 400, а не 404
+            try {
+                final Mpa savedMpa = mpaRepository.getMpaById(mpaId);
+                log.debug("Запросили рейтинг фильма из БД. Рейтинг с ID: {} найден: {}", mpaId, savedMpa);
+            } catch (MpaNotFoundException e) {
+                throw new RequestException(e.getMessage());
+            }
         }
         // Проверяем, что указанные в фильме жанры есть в БД
         if (film.getGenres() != null) {
@@ -56,16 +60,16 @@ public class FilmService {
     }
 
 
+    @Override
     public Film updateFilm(Film film) {
         final Film savedFilm = filmRepository.getFilmById(film.getId());
         log.debug("Проверили, что фильм с таким ID: {} существует в базе данных", film.getId());
 
         // Проверяем, что указанный в фильме рейтинг есть в БД
         if (film.getMpa() != null) {
-            int ratingId = film.getMpa().getId();
-            final Mpa savedMpa = mpaRepository.getMpaById(ratingId).orElseThrow(() ->
-                    new NotFoundException("Рейтинг MPA с ID: " + ratingId + " не найден в базе данных"));
-            log.debug("Запросили рейтинг фильма из БД. Рейтинг с ID:{} найден: {}", ratingId, savedMpa);
+            int mpaId = film.getMpa().getId();
+            final Mpa savedMpa = mpaRepository.getMpaById(mpaId);
+            log.debug("Запросили рейтинг фильма из БД. Рейтинг с ID:{} найден: {}", mpaId, savedMpa);
         }
 
         // Проверяем, что указанные в фильме жанры есть в БД
@@ -81,26 +85,17 @@ public class FilmService {
         return filmRepository.updateFilm(film);
     }
 
+    @Override
     public Collection<Film> getAllFilms() {
         return filmRepository.getAllFilms();
     }
 
+    @Override
     public Film getFilmById(long id) {
         return filmRepository.getFilmById(id);
     }
 
-    public void addLike(long filmId, long userId) {
-        userRepository.getUserById(userId); //проверка существования пользователя в хранилище
-        filmRepository.addLike(filmId, userId);
-        log.info("Пользователь с ID: {} поставил лайк фильму c ID: {}", userId, filmId);
-    }
-
-    public void removeLike(long filmId, long userId) {
-        userRepository.getUserById(userId); //проверка существования пользователя в хранилище
-        filmRepository.removeLike(filmId, userId);
-        log.info("Пользователь с ID: {} удалил лайк у фильма c ID: {}", userId, filmId);
-    }
-
+    @Override
     public List<Film> getPopularFilms(int count) {
         return filmRepository.getTopPopular(count);
     }

@@ -11,8 +11,9 @@ import lombok.Data;
 import ru.yandex.practicum.filmorate.validator.ValidReleaseDate;
 
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Data
 @Builder
@@ -35,15 +36,22 @@ public class Film {
 
     private Mpa mpa; //films.mpa_id <- mpa.get()
 
-    private Set<Genre> genres; //genre_films.film_id и genre_id
+    private Set<Genre> genres;
 
     @JsonIgnore
     private Set<Long> usersLikeIds;
 
     public void addGenre(Genre genre) {
-        if (genres == null) {
-            genres = new HashSet<>();
+        if (this.genres == null) {
+            this.genres = new TreeSet<>(Comparator.comparingInt(Genre::getId));
         }
         genres.add(genre);
+    }
+
+    public void setGenres(Set<Genre> genres) {
+        if (this.genres == null) {
+            this.genres = new TreeSet<>(Comparator.comparingInt(Genre::getId));
+        }
+        this.genres.addAll(genres);
     }
 }

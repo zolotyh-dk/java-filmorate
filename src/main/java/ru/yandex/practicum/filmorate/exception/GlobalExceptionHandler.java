@@ -25,18 +25,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(NotFoundException.class)
+    @ExceptionHandler({NotFoundException.class, RequestException.class})
     public ResponseEntity<Object> handleNotFoundExceptions(RuntimeException exception) {
         log.error("Ресурс не найден: {}", exception.getMessage());
         ErrorDetails errorDetails = new ErrorDetails(exception.getMessage());
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST); // для Mpa и жанров Postman ожидает код 400
     }
 
-    @ExceptionHandler(FilmNotFoundException.class)
+    @ExceptionHandler({FilmNotFoundException.class, UserNotFoundException.class, GenreNotFoundException.class, MpaNotFoundException.class})
     public ResponseEntity<Object> handleFilmNotFoundExceptions(RuntimeException exception) {
         log.error("Ресурс не найден: {}", exception.getMessage());
         ErrorDetails errorDetails = new ErrorDetails(exception.getMessage());
-        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND); // для фильмов Postman ожидает код 404
+        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND); // для фильмов и пользователей и жанров Postman ожидает код 404
     }
 
     @ExceptionHandler(Exception.class)

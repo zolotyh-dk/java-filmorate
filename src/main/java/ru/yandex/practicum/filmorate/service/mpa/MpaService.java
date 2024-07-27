@@ -1,11 +1,11 @@
-package ru.yandex.practicum.filmorate.repository;
+package ru.yandex.practicum.filmorate.service.mpa;
 
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.util.Collection;
 
-public interface MpaRepository {
-    Mpa getMpaById(int id);
-
+public interface MpaService {
     Collection<Mpa> getAllMpa();
+
+    Mpa getMpaById(int id);
 }

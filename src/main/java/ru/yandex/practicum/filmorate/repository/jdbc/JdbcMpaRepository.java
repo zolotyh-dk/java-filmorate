@@ -4,11 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.MpaNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.MpaRowMapper;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.repository.MpaRepository;
 
-import java.util.Optional;
+import java.util.Collection;
 
 @Repository
 @RequiredArgsConstructor
@@ -16,7 +17,7 @@ public class JdbcMpaRepository implements MpaRepository {
     private final NamedParameterJdbcOperations jdbc;
 
     @Override
-    public Optional<Mpa> getMpaById(int id) {
+    public Mpa getMpaById(int id) {
         final String sql = """
                 SELECT id, name
                 FROM mpa
@@ -24,6 +25,16 @@ public class JdbcMpaRepository implements MpaRepository {
                 """;
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("id", id);
-        return jdbc.query(sql, params, new MpaRowMapper()).stream().findFirst();
+        return jdbc.query(sql, params, new MpaRowMapper()).stream().findFirst().orElseThrow(() ->
+                new MpaNotFoundException("Рейтинг с ID: " + id + " не найден в базе данных"));
+    }
+
+    @Override
+    public Collection<Mpa> getAllMpa() {
+        final String sql = """
+                SELECT *
+                FROM mpa
+                """;
+        return jdbc.query(sql, new MpaRowMapper());
     }
 }
