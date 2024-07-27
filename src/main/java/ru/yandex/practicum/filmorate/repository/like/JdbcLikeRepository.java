@@ -12,6 +12,10 @@ import org.springframework.stereotype.Repository;
 public class JdbcLikeRepository implements LikeRepository {
     private final NamedParameterJdbcOperations jdbc;
 
+    public NamedParameterJdbcOperations getJdbc() {
+        return jdbc;
+    }
+
     @Override
     public void addLike(long filmId, long userId) {
         //Проверяем нет ли уже лайка от этого пользователя этому фильму

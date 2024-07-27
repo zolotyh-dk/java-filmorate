@@ -118,10 +118,6 @@ public class JdbcFilmRepository implements FilmRepository {
         return film;
     }
 
-    /*1. получить все жанры (их мало)
-      2. получить все фильмы с рейтингом, но без жанра
-      3. получить связи жанры - фильмы static record GenreRelation(film_id, genre_id)
-      4. объединить */
     @Override
     public Collection<Film> getAllFilms() {
         // Получаем все жанры
@@ -205,43 +201,40 @@ public class JdbcFilmRepository implements FilmRepository {
     private static class FilmResultSetExtractor implements ResultSetExtractor<Film> {
         @Override
         public Film extractData(ResultSet resultSet) throws SQLException, DataAccessException {
-            Film.FilmBuilder filmBuilder = null;
+            Film film = null;
             Set<Genre> genres = new HashSet<>();
 
             while (resultSet.next()) {
-                if (filmBuilder == null) {
-                    Mpa mpa = Mpa.builder()
-                            .id(resultSet.getInt("mpa_id"))
-                            .name(resultSet.getString("mpa_name"))
-                            .build();
+                if (film == null) {
+                    Mpa mpa = new Mpa();
+                    mpa.setId(resultSet.getInt("mpa_id"));
+                    mpa.setName(resultSet.getString("mpa_name"));
 
                     log.debug("Извлекли рейтинг фильма из БД: {}", mpa);
 
-                    filmBuilder = Film.builder()
-                            .id(resultSet.getLong("film_id"))
-                            .name(resultSet.getString("film_name"))
-                            .description(resultSet.getString("description"))
-                            .releaseDate(resultSet.getDate("release_date").toLocalDate())
-                            .duration(resultSet.getInt("duration"))
-                            .mpa(mpa);
+                    film = new Film();
+                    film.setId(resultSet.getLong("film_id"));
+                    film.setName(resultSet.getString("film_name"));
+                    film.setDescription(resultSet.getString("description"));
+                    film.setReleaseDate(resultSet.getDate("release_date").toLocalDate());
+                    film.setDuration(resultSet.getInt("duration"));
+                    film.setMpa(mpa);
                 }
 
                 int genreId = resultSet.getInt("genre_id");
                 if (!resultSet.wasNull()) {
-                    Genre genre = Genre.builder()
-                            .id(genreId)
-                            .name(resultSet.getString("genre_name"))
-                            .build();
+                    Genre genre = new Genre();
+                    genre.setId(genreId);
+                    genre.setName(resultSet.getString("genre_name"));
                     log.debug("Извлекли жанр фильма из БД: {}", genre);
                     genres.add(genre);
                 }
             }
 
-            if (filmBuilder == null) {
+            if (film == null) {
                 throw new NotFoundException("Фильм не найден в базе данных");
             }
 
-            Film film = filmBuilder.build();
             film.setGenres(genres);
             log.debug("Получили из базы данных фильм: {}", film);
             return film;

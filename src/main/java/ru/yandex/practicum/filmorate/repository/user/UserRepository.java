@@ -14,5 +14,5 @@ public interface UserRepository {
 
     User getUserById(long id);
 
-    List<User> getUsersByIds(List<Integer> ids);
+    List<User> getUsersByIds(List<Long> ids);
 }

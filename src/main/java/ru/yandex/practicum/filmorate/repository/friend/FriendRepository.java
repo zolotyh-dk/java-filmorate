@@ -7,7 +7,7 @@ public interface FriendRepository {
 
     void removeFriend(long userId, long friendId);
 
-    List<Integer> getFriendsIds(long id);
+    List<Long> getFriendsIds(long id);
 
-    List<Integer> getCommonFriendsIds(long userId, long otherId);
+    List<Long> getCommonFriendsIds(long userId, long otherId);
 }

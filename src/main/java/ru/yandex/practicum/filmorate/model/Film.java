@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
 import lombok.Data;
 import ru.yandex.practicum.filmorate.validator.ValidReleaseDate;
 
@@ -16,8 +15,11 @@ import java.util.Set;
 import java.util.TreeSet;
 
 @Data
-@Builder
 public class Film {
+    public Film() {
+        this.genres = new TreeSet<>(Comparator.comparingInt(Genre::getId));
+    }
+
     private long id;
 
     @NotBlank(message = "Название не может быть пустым")
@@ -42,16 +44,10 @@ public class Film {
     private Set<Long> usersLikeIds;
 
     public void addGenre(Genre genre) {
-        if (this.genres == null) {
-            this.genres = new TreeSet<>(Comparator.comparingInt(Genre::getId));
-        }
         genres.add(genre);
     }
 
     public void setGenres(Set<Genre> genres) {
-        if (this.genres == null) {
-            this.genres = new TreeSet<>(Comparator.comparingInt(Genre::getId));
-        }
         this.genres.addAll(genres);
     }
 }

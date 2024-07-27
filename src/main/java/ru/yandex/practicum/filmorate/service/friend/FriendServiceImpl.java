@@ -19,7 +19,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     public void addFriend(long userId, long friendId) {
         final User user = userRepository.getUserById(userId);
-        final User friend = userRepository.getUserById(friendId);
+        userRepository.getUserById(friendId);
         log.debug("Проверили, что пользователь с ID: {} и друг c ID: {} существуют в базе данных", userId, friendId);
         friendRepository.addFriend(userId, friendId);
         log.info("Добавили друга пользователю {}", user);
@@ -36,19 +36,19 @@ public class FriendServiceImpl implements FriendService {
 
     @Override
     public List<User> getFriends(long id) {
-        final User user = userRepository.getUserById(id);
+        userRepository.getUserById(id);
         log.debug("Проверили, что пользователь с ID: {} существует в базе данных", id);
-        final List<Integer> friendIds = friendRepository.getFriendsIds(id);
+        final List<Long> friendIds = friendRepository.getFriendsIds(id);
         log.debug("Получили из БД список ID друзей пользователя: {}", friendIds);
         return userRepository.getUsersByIds(friendIds);
     }
 
     @Override
     public List<User> getCommonFriends(long userId, long otherId) {
-        final User user = userRepository.getUserById(userId);
-        final User other = userRepository.getUserById(otherId);
+        userRepository.getUserById(userId);
+        userRepository.getUserById(otherId);
         log.debug("Проверили, что пользователь с ID: {} и другой c ID: {} существуют в базе данных", userId, otherId);
-        final List<Integer> commonFriendsIds = friendRepository.getCommonFriendsIds(userId, otherId);
+        final List<Long> commonFriendsIds = friendRepository.getCommonFriendsIds(userId, otherId);
         log.debug("Получили из БД список ID общих друзей пользователей: {}", commonFriendsIds);
         return userRepository.getUsersByIds(commonFriendsIds);
     }

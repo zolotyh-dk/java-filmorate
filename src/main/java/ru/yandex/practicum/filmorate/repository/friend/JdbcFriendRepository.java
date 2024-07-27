@@ -54,7 +54,7 @@ public class JdbcFriendRepository implements FriendRepository {
     }
 
     @Override
-    public List<Integer> getFriendsIds(long id) {
+    public List<Long> getFriendsIds(long id) {
         final String sql = """
                 SELECT friend_id
                 FROM friendship
@@ -62,11 +62,11 @@ public class JdbcFriendRepository implements FriendRepository {
                 """;
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("id", id);
-        return jdbc.queryForList(sql, params, Integer.class);
+        return jdbc.queryForList(sql, params, Long.class);
     }
 
     @Override
-    public List<Integer> getCommonFriendsIds(long userId, long otherId) {
+    public List<Long> getCommonFriendsIds(long userId, long otherId) {
         final String sql = """
             SELECT f1.friend_id
             FROM friendship AS f1
@@ -77,6 +77,6 @@ public class JdbcFriendRepository implements FriendRepository {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("userId", userId);
         params.addValue("otherId", otherId);
-        return jdbc.queryForList(sql, params, Integer.class);
+        return jdbc.queryForList(sql, params, Long.class);
     }
 }

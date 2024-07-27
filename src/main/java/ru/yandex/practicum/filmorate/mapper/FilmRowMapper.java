@@ -10,18 +10,19 @@ import java.sql.SQLException;
 public class FilmRowMapper implements RowMapper<Film> {
     @Override
     public Film mapRow(ResultSet resultSet, int rowNum) throws SQLException {
-        Mpa mpa = Mpa.builder()
-                .id(resultSet.getInt("mpa_id"))
-                .name(resultSet.getString("mpa_name"))
-                .build();
+        Mpa mpa = new Mpa();
+        mpa.setId(resultSet.getInt("mpa_id"));
+        mpa.setName(resultSet.getString("mpa_name"));
 
-        return Film.builder()
-                .id(resultSet.getLong("id"))
-                .name(resultSet.getString("name"))
-                .description(resultSet.getString("description"))
-                .releaseDate(resultSet.getDate("release_date").toLocalDate())
-                .duration(resultSet.getInt("duration"))
-                .mpa(mpa)
-                .build();
+        Film film = new Film();
+        film.setId(resultSet.getLong("id"));
+        film.setName(resultSet.getString("name"));
+        film.setDescription(resultSet.getString("description"));
+        film.setReleaseDate(resultSet.getDate("release_date").toLocalDate());
+        film.setDuration(resultSet.getInt("duration"));
+        film.setMpa(mpa);
+
+        return film;
     }
 }
+

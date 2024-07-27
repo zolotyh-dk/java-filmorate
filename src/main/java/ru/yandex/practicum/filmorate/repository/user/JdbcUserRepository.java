@@ -82,7 +82,7 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     @Override
-    public List<User> getUsersByIds(List<Integer> userIds) {
+    public List<User> getUsersByIds(List<Long> userIds) {
         final String sql = """
                 SELECT *
                 FROM users
