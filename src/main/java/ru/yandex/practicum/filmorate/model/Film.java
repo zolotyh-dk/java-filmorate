@@ -10,11 +10,16 @@ import lombok.Data;
 import ru.yandex.practicum.filmorate.validator.ValidReleaseDate;
 
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Data
 public class Film {
+    public Film() {
+        this.genres = new TreeSet<>(Comparator.comparingInt(Genre::getId));
+    }
+
     private long id;
 
     @NotBlank(message = "Название не может быть пустым")
@@ -31,10 +36,18 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     private int duration;
 
+    private Mpa mpa; //films.mpa_id <- mpa.get()
+
+    private Set<Genre> genres;
+
     @JsonIgnore
     private Set<Long> usersLikeIds;
 
-    public Film() {
-        this.usersLikeIds = new HashSet<>();
+    public void addGenre(Genre genre) {
+        genres.add(genre);
+    }
+
+    public void setGenres(Set<Genre> genres) {
+        this.genres.addAll(genres);
     }
 }
